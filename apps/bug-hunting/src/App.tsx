@@ -5,17 +5,18 @@ import TodoForm from "./components/TodoForm";
 import TodoFilter from "./components/TodoFilter";
 import { Todo } from "./types/todo.types";
 import { Filter } from "./types/filter.types";
+import { generateNanoId } from "./utils/id.util";
 
 const App = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
 
   const addTodo = (text: string) => {
-    todos.push({ text, completed: false });
+    todos.push({ id: generateNanoId(), text, completed: false });
     setTodos(todos);
   };
 
-  const toggleTodo = (id: number) => {
+  const toggleTodo = (id: string) => {
     const updatedTodos = todos.map((todo) => {
       if (todo.id == id) {
         todo.completed = !todo.completed;
@@ -26,7 +27,7 @@ const App = () => {
     setTodos(updatedTodos);
   };
 
-  const deleteTodo = () => {
+  const deleteTodo = (id: string) => {
     const remainingTodos = todos.filter((todo) => {
       return todo.id !== id;
     });
