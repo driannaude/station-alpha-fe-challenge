@@ -14,11 +14,11 @@ const TodoList: FC<TodoListProps> = ({ todos, onToggle, onDelete }) => {
         <li className={`todo-item ${todo.completed ? "completed" : ""}`}>
           <input
             type="checkbox"
-            checked={todo.complete}
-            onChange={() => onToggle(todo)}
+            checked={todo.completed}
+            onChange={() => onToggle(todo.id)}
           />
           <span>{todo.text}</span>
-          <button className="delete-btn" onClick={onDelete(todo.id)}>
+          <button className="delete-btn" onClick={() => onDelete(todo.id)}>
             Delete
           </button>
         </li>
