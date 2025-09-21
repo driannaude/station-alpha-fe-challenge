@@ -11,7 +11,10 @@ const TodoList: FC<TodoListProps> = ({ todos, onToggle, onDelete }) => {
   return (
     <ul className="todo-list">
       {todos.map((todo) => (
-        <li className={`todo-item ${todo.completed ? "completed" : ""}`}>
+        <li
+          key={todo.id}
+          className={`todo-item ${todo.completed ? "completed" : ""}`}
+        >
           <input
             type="checkbox"
             checked={todo.completed}
