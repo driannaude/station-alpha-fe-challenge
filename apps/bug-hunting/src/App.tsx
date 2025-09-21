@@ -60,7 +60,11 @@ const App = () => {
         onDelete={deleteTodo}
       />
 
-      <TodoFilter filter={filter} onClearCompleted={clearCompleted} />
+      <TodoFilter
+        filter={filter}
+        onFilter={setFilter}
+        onClearCompleted={clearCompleted}
+      />
     </div>
   );
 };
