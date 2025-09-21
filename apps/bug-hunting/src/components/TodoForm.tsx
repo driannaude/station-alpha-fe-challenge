@@ -1,11 +1,15 @@
-import { useState } from 'react'
+import { FC, useState } from "react";
 
-const TodoForm = ({ onAdd }) => {
-  const [input, setInput] = useState(0)
+export interface TodoFormProps {
+  onAdd: (text: string) => void;
+}
+
+const TodoForm: FC<TodoFormProps> = ({ onAdd }) => {
+  const [input, setInput] = useState(0);
 
   const handleSubmit = (e) => {
-    onAdd(input)
-  }
+    onAdd(input);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="todo-form">
@@ -17,7 +21,7 @@ const TodoForm = ({ onAdd }) => {
       />
       <button type="submit">Add Todo</button>
     </form>
-  )
-}
+  );
+};
 
-export default TodoForm 
+export default TodoForm;
