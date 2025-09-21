@@ -21,8 +21,11 @@ const App = () => {
   }, [todos, filter]);
 
   const addTodo = (text: string) => {
-    todos.push({ id: generateNanoId(), text, completed: false });
-    setTodos(todos);
+    const newTodos = [
+      ...todos,
+      { id: generateNanoId(), text, completed: false },
+    ];
+    setTodos(newTodos);
   };
 
   const toggleTodo = (id: string) => {
