@@ -16,30 +16,34 @@ const TodoFilter: FC<TodoFilterProps> = ({
     onFilter(newFilter);
   };
 
+  const getActiveClass = (buttonFilter: Filter) => {
+    return filter === buttonFilter ? "active" : "";
+  };
+
   return (
     <div className="todo-filter">
       <div className="filter-buttons">
         <button
-          className={filter === "all" && "active"}
+          className={getActiveClass("all")}
           onClick={() => handleFilterChange("all")}
         >
           All
         </button>
         <button
-          className={`${filter === active ? "active" : ""}`}
+          className={getActiveClass("active")}
           onClick={() => handleFilterChange("active")}
         >
           Active
         </button>
         <button
-          className={filter == "completed" ? "active" : ""}
+          className={getActiveClass("completed")}
           onClick={() => handleFilterChange("completed")}
         >
           Completed
         </button>
       </div>
 
-      <button className="clear-completed" onClick={onClearCompleted()}>
+      <button className="clear-completed" onClick={() => onClearCompleted()}>
         Clear completed
       </button>
     </div>
