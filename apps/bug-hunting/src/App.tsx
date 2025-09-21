@@ -52,7 +52,7 @@ const App = () => {
     <div className="app">
       <h1>Todo App</h1>
 
-      <TodoForm />
+      <TodoForm onAdd={addTodo} />
 
       <TodoList
         todos={filteredTodos()}
