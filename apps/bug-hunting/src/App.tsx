@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "./App.css";
 import TodoList from "./components/TodoList";
 import TodoForm from "./components/TodoForm";
@@ -10,6 +10,15 @@ import { generateNanoId } from "./utils/id.util";
 const App = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
+
+  const filteredTodos = useMemo(() => {
+    if (filter === "active") {
+      return todos.filter((todo) => !todo.completed);
+    } else if (filter === "completed") {
+      return todos.filter((todo) => todo.completed);
+    }
+    return todos;
+  }, [todos, filter]);
 
   const addTodo = (text: string) => {
     todos.push({ id: generateNanoId(), text, completed: false });
@@ -34,15 +43,6 @@ const App = () => {
     setTodos(remainingTodos);
   };
 
-  const filteredTodos = () => {
-    if (filter === "active") {
-      return todos.filter((todo) => !todo.completed);
-    } else if (filter === "completed") {
-      return todos.filter((todo) => todo.completed);
-    }
-    return todos;
-  };
-
   function clearCompleted() {
     const activeTodos = todos.filter((todo) => !todo.completed);
     setTodos(activeTodos);
@@ -55,7 +55,7 @@ const App = () => {
       <TodoForm onAdd={addTodo} />
 
       <TodoList
-        todos={filteredTodos()}
+        todos={filteredTodos}
         onToggle={toggleTodo}
         onDelete={deleteTodo}
       />
