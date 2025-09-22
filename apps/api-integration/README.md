@@ -41,6 +41,32 @@ You will be creating a weather application that integrates with a public weather
 
 ## Getting Started
 
+### Environment Setup
+
+Before you can run the application, you need to set up your environment variables:
+
+1. **From the root directory** of the project, copy the environment template:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Get a Weather API key**:
+   - Go to [WeatherAPI.com](https://www.weatherapi.com/)
+   - Sign up for a free account
+   - Navigate to your dashboard and copy your API key
+   - The free tier includes 1,000,000 API calls per month, which is more than enough for this challenge
+
+3. **Update your `.env` file**:
+   ```bash
+   # Replace YOUR_API_KEY with your actual API key
+   VITE_WEATHER_API_KEY=your_actual_api_key_here
+   ```
+
+4. **Verify your setup**:
+   The application uses Vite environment variables (prefixed with `VITE_`), which will be available in your React components via `import.meta.env.VITE_WEATHER_API_KEY`.
+
+### Running the Application
+
 ```bash
 # Install dependencies
 npm install
