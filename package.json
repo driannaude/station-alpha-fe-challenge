@@ -12,9 +12,9 @@
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prepare-apps": "npm install && npm run install-apps",
-    "install-apps": "npm run install-app:bug-hunting && npm run install-app:fullstack && npm run install-app:animation && npm run install-app:api",
+    "install-apps": "npm run install-app:bug-hunting && npm run install-app:playwright && npm run install-app:animation && npm run install-app:api",
     "install-app:bug-hunting": "cd apps/bug-hunting && npm install",
-    "install-app:fullstack": "cd apps/fullstack-challenge && npm install",
+    "install-app:playwright": "cd apps/playwright-challenge && npm install",
     "install-app:animation": "cd apps/animation-showcase && npm install",
     "install-app:api": "cd apps/api-integration && npm install"
   },

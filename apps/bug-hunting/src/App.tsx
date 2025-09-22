@@ -1,65 +1,74 @@
-import { useState } from 'react'
-import './App.css'
-import TodoList from './components/TodoList'
-import TodoForm from './components/TodoForm'
-import TodoFilter from './components/TodoFilter'
+import { useMemo, useState } from "react";
+import "./App.css";
+import TodoList from "./components/TodoList";
+import TodoForm from "./components/TodoForm";
+import TodoFilter from "./components/TodoFilter";
+import { Todo } from "./types/todo.types";
+import { Filter } from "./types/filter.types";
+import { generateNanoId } from "./utils/id.util";
 
 const App = () => {
-  const [todos, setTodos] = useState(null)
-  const [filter, setFilter] = useState()
-  
-  const addTodo = (text) => {
-    todos.push({ text, completed: false })
-    setTodos(todos)
-  }
-  
-  const toggleTodo = (id) => {
-    const updatedTodos = todos.map(todo => {
-      if (todo.id == id) {
-        todo.completed = !todo.completed
-        return todo
-      }
-      return todo
-    })
-    setTodos(updatedTodos)
-  }
-  
-  const deleteTodo = () => {
-    const remainingTodos = todos.filter(todo => {
-      return todo.id !== id
-    })
-    setTodos(remainingTodos)
-  }
-  
-  const filteredTodos = () => {
-    if (filter === 'active') {
-      return todos.filter(todo => !todo.completed)
-    } else if (filter === 'completed') {
-      return todos.filter(todo => todo.completed)
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [filter, setFilter] = useState<Filter>("all");
+
+  const filteredTodos = useMemo(() => {
+    if (filter === "active") {
+      return todos.filter((todo) => !todo.completed);
+    } else if (filter === "completed") {
+      return todos.filter((todo) => todo.completed);
     }
-    return todos
-  }
-  
+    return todos;
+  }, [todos, filter]);
+
+  const addTodo = (text: string) => {
+    const newTodos = [
+      ...todos,
+      { id: generateNanoId(), text, completed: false },
+    ];
+    setTodos(newTodos);
+  };
+
+  const toggleTodo = (id: string) => {
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id
+        ? // Don't mutate the original todo, create a new object instead
+          { ...todo, completed: !todo.completed }
+        : todo
+    );
+    setTodos(updatedTodos);
+  };
+
+  const deleteTodo = (id: string) => {
+    const remainingTodos = todos.filter((todo) => {
+      return todo.id !== id;
+    });
+    setTodos(remainingTodos);
+  };
+
   function clearCompleted() {
-    const activeTodos = todos.filter(todo => !todo.completed)
-    setTodos(activeTodos)
+    const activeTodos = todos.filter((todo) => !todo.completed);
+    setTodos(activeTodos);
   }
-  
+
   return (
     <div className="app">
       <h1>Todo App</h1>
-      
-      <TodoForm />
-      
-      <TodoList 
-        todos={filteredTodos()} 
-        onToggle={toggleTodo} 
-        onDelete={deleteTodo} 
-      />
-      
-      <TodoFilter filter={filter} onClearCompleted={clearCompleted} />
-    </div>
-  )
-}
 
-export default App
+      <TodoForm onAdd={addTodo} />
+
+      <TodoList
+        todos={filteredTodos}
+        onToggle={toggleTodo}
+        onDelete={deleteTodo}
+      />
+
+      <TodoFilter
+        filter={filter}
+        onFilter={setFilter}
+        onClearCompleted={clearCompleted}
+      />
+    </div>
+  );
+};
+
+export default App;
