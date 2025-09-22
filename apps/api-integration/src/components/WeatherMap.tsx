@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getEnvironmentConfig } from "../utils/environment";
 import { WeatherData } from "../types/app.types";
 
@@ -12,6 +12,8 @@ const WeatherMap = ({ weatherData, onLocationSelect }: WeatherMapProps) => {
   const [zoom, setZoom] = useState<number>(10);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
   // Get coordinates from weatherData
   const lat = weatherData.location.lat;
@@ -26,6 +28,18 @@ const WeatherMap = ({ weatherData, onLocationSelect }: WeatherMapProps) => {
     const timer = setTimeout(() => setIsLoading(false), 300);
     return () => clearTimeout(timer);
   }, [weatherData, mapType, zoom, lat, lon]);
+
+  // Observe container size to determine how many tiles to render
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    const update = () =>
+      setContainerSize({ width: el.clientWidth, height: el.clientHeight });
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   // Generate weather map tile URL for specific tile coordinates
   const getWeatherMapTileUrl = (
@@ -51,8 +65,14 @@ const WeatherMap = ({ weatherData, onLocationSelect }: WeatherMapProps) => {
     return `https://tile.openweathermap.org/map/${layer}/${zoom}/${tileX}/${tileY}.png?appid=${config.weather.map.apiKey}`;
   };
 
-  // Generate multiple tiles for a 3x3 grid
-  const generateTileGrid = (lat: number, lon: number, zoom: number) => {
+  // Generate multiple tiles to fully cover the container
+  const generateTileGrid = (
+    lat: number,
+    lon: number,
+    zoom: number,
+    width: number,
+    height: number
+  ) => {
     const n = Math.pow(2, zoom);
     const centerTileX = Math.floor(((lon + 180) / 360) * n);
     const latRad = (lat * Math.PI) / 180;
@@ -63,9 +83,14 @@ const WeatherMap = ({ weatherData, onLocationSelect }: WeatherMapProps) => {
 
     const tiles = [];
 
-    // Generate 3x3 grid of tiles
-    for (let dy = -1; dy <= 1; dy++) {
-      for (let dx = -1; dx <= 1; dx++) {
+    // Determine how many tiles we need to cover container plus 1 margin on each side
+    const tilesX = Math.max(3, Math.ceil(width / 256) + 2);
+    const tilesY = Math.max(3, Math.ceil(height / 256) + 2);
+    const halfX = Math.floor(tilesX / 2);
+    const halfY = Math.floor(tilesY / 2);
+
+    for (let dy = -halfY; dy <= halfY; dy++) {
+      for (let dx = -halfX; dx <= halfX; dx++) {
         const tileX = (((centerTileX + dx) % n) + n) % n; // wrap around
         const tileY = Math.max(0, Math.min(n - 1, centerTileY + dy));
 
@@ -104,8 +129,16 @@ const WeatherMap = ({ weatherData, onLocationSelect }: WeatherMapProps) => {
     };
   };
 
-  const tiles = generateTileGrid(lat, lon, zoom);
+  const tiles = generateTileGrid(
+    lat,
+    lon,
+    zoom,
+    containerSize.width,
+    containerSize.height
+  );
   const centerPixel = getCenterPixelPosition(lat, lon, zoom);
+  // Scale pin size with zoom so it feels anchored
+  const pinSize = Math.max(16, Math.min(36, 12 + zoom * 1.2));
 
   // Get description for current map type
   const getMapTypeDescription = (type: string): string => {
@@ -153,18 +186,9 @@ const WeatherMap = ({ weatherData, onLocationSelect }: WeatherMapProps) => {
     const offsetX = clickX - containerWidth / 2;
     const offsetY = clickY - containerHeight / 2;
 
-    // For a 3x3 tile grid, we need to scale based on how much of the tile grid is visible
-    // The visible area spans 3 tiles (768px) but is scaled to fit the container
-    const visibleTileWidth = 768; // 3 tiles * 256px each
-    const visibleTileHeight = 768; // 3 tiles * 256px each
-
-    // Calculate the scale factor from container pixels to tile pixels
-    const scaleX = visibleTileWidth / containerWidth;
-    const scaleY = visibleTileHeight / containerHeight;
-
-    // Convert container offset to tile pixel offset
-    const tilePixelOffsetX = offsetX * scaleX;
-    const tilePixelOffsetY = offsetY * scaleY;
+    // With tiles rendered at 1:1 size, container pixels equal tile pixels
+    const tilePixelOffsetX = offsetX;
+    const tilePixelOffsetY = offsetY;
 
     // Calculate the absolute pixel position in the tile coordinate system
     // We need to account for our center point being offset within its tile
@@ -261,7 +285,11 @@ const WeatherMap = ({ weatherData, onLocationSelect }: WeatherMapProps) => {
         </div>
       </div>
 
-      <div className="map-container" onClick={handleMapClick}>
+      <div
+        className="map-container"
+        ref={containerRef}
+        onClick={handleMapClick}
+      >
         {isLoading && (
           <div className="loading-spinner">
             <div className="spinner"></div>
@@ -287,6 +315,8 @@ const WeatherMap = ({ weatherData, onLocationSelect }: WeatherMapProps) => {
                   onLoad={handleImageLoad}
                   onError={handleImageError}
                   style={{
+                    // Tiles are already centered via CSS (top/left 50% with -128px margins)
+                    // So only adjust by tile offsets and the pixel offset within the center tile
                     transform: `translate(${tile.offsetX + (128 - centerPixel.pixelX)}px, ${tile.offsetY + (128 - centerPixel.pixelY)}px)`,
                   }}
                 />
@@ -336,6 +366,7 @@ const WeatherMap = ({ weatherData, onLocationSelect }: WeatherMapProps) => {
         <div
           className="location-marker"
           title={`${weatherData.location.name} (${lat.toFixed(4)}, ${lon.toFixed(4)})`}
+          style={{ fontSize: `${pinSize}px` }}
         >
           📍
         </div>

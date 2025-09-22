@@ -20,7 +20,8 @@ const config = getEnvironmentConfig();
 export const getCurrentWeather = async (
   location: string
 ): Promise<WeatherData> => {
-  const cacheKey = createCacheKey("weather-current", location);
+  // Include alerts in the request; bump cache key to fetch fresh
+  const cacheKey = createCacheKey("weather-current-alerts", location);
 
   // Try to get cached data first
   const cachedData = getCachedWeatherData<WeatherData>(cacheKey);
@@ -29,7 +30,7 @@ export const getCurrentWeather = async (
   try {
     // Use forecast endpoint to get both current weather and forecast in one call
     const response = await fetch(
-      `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=5`
+      `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=5&alerts=yes`
     );
     if (!response.ok) throw new Error("Weather data not found");
     const data = await response.json();
@@ -82,7 +83,11 @@ export const getWeatherForecast = async (
   location: string,
   days: number = 5
 ): Promise<WeatherData> => {
-  const cacheKey = createCacheKey("weather-forecast", `${location}-${days}`);
+  // Include alerts in the request; bump cache key to fetch fresh
+  const cacheKey = createCacheKey(
+    "weather-forecast-alerts",
+    `${location}-${days}`
+  );
 
   // Try to get cached data first
   const cachedData = getCachedWeatherData<WeatherData>(cacheKey);
@@ -91,7 +96,7 @@ export const getWeatherForecast = async (
   try {
     // Fetch weather data
     const response = await fetch(
-      `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=${days}`
+      `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=${days}&alerts=yes`
     );
     if (!response.ok) throw new Error("Weather forecast not found");
     const data = await response.json();
@@ -138,15 +143,18 @@ export const getWeatherAlerts = async (
   location: string
 ): Promise<WeatherData> => {
   try {
-    console.log(location);
-    // TODO: Implement API call to get weather alerts
-    // Example:
-    // const response = await fetch(`${BASE_URL}/forecast.json?key=${API_KEY}&q=${location}&alerts=yes`);
-    // if (!response.ok) throw new Error('Weather alerts not found');
-    // const data = await response.json();
-    // return transformWeatherData(data);
+    const cacheKey = createCacheKey("weather-alerts", location);
+    const cached = getCachedWeatherData<WeatherData>(cacheKey);
+    if (cached) return cached;
 
-    throw new Error("getWeatherAlerts not implemented");
+    const response = await fetch(
+      `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=1&alerts=yes`
+    );
+    if (!response.ok) throw new Error("Weather alerts not found");
+    const data = await response.json();
+    const transformed = transformWeatherData(data);
+    cacheWeatherData(cacheKey, transformed, 15);
+    return transformed;
   } catch (error) {
     console.error("Error fetching weather alerts:", error);
     throw error;

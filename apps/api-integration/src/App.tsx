@@ -10,6 +10,7 @@ import CurrentWeather from "./components/CurrentWeather";
 import SearchBar from "./components/SearchBar";
 import Forecast from "./components/Forecast";
 import WeatherMap from "./components/WeatherMap";
+import WeatherAlerts from "./components/WeatherAlerts";
 
 function App() {
   // Weather data state
@@ -20,6 +21,8 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   // Search history
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  // Instructions visibility
+  const [showInstructions, setShowInstructions] = useState<boolean>(false);
 
   // Load search history from localStorage on component mount
   useEffect(() => {
@@ -74,9 +77,16 @@ function App() {
         <p className="app-description">
           Get real-time weather information for any location
         </p>
+        <button
+          className="instructions-toggle"
+          onClick={() => setShowInstructions((v) => !v)}
+        >
+          {showInstructions ? "Hide Instructions" : "Show Instructions"}
+        </button>
       </header>
 
-      <main className="app-content">
+      <main className={`app-content ${!showInstructions ? "no-instructions" : ""}`}>
+        {showInstructions && (
         <section className="instructions">
           <h2>API Integration Challenge</h2>
           <p>
@@ -154,6 +164,7 @@ function App() {
             </ul>
           </div>
         </section>
+        )}
 
         <section className="implementation-area">
           <h2>Your Implementation</h2>
@@ -201,10 +212,7 @@ function App() {
 
                 {/* Alerts - Sidebar */}
                 <div className="bento-alerts">
-                  <div className="weather-alerts">
-                    <h3>Weather Alerts Placeholder</h3>
-                    <p>Implement weather alerts here</p>
-                  </div>
+                  <WeatherAlerts weatherData={weatherData} />
                 </div>
               </div>
             )}

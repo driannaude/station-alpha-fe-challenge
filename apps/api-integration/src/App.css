@@ -42,7 +42,7 @@
 }
 
 .weather-app {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 2rem;
   font-family:
@@ -74,9 +74,17 @@
   gap: 2rem;
 }
 
+/* When instructions are hidden, let content span full width across breakpoints */
+.app-content.no-instructions {
+  grid-template-columns: 1fr;
+}
+
 @media (min-width: 768px) {
   .app-content {
     grid-template-columns: minmax(300px, 1fr) 2fr;
+  }
+  .app-content.no-instructions {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -134,6 +142,22 @@
 
 .api-info a:hover {
   text-decoration: underline;
+}
+
+/* Instructions toggle button */
+.instructions-toggle {
+  margin-top: 0.75rem;
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #1a73e8;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.instructions-toggle:hover {
+  background-color: #e8f0fe;
 }
 
 .implementation-area {
@@ -243,7 +267,7 @@
   }
 
   .bento-alerts {
-    grid-column: 1 / 6; /* Left side - 5 columns */
+    grid-column: 1 / -1; /* Full width under forecast */
   }
 
   .bento-map {
@@ -251,7 +275,7 @@
   }
 
   .bento-forecast {
-    grid-column: 6 / -1; /* Right side - 7 columns for the wide forecast */
+    grid-column: 1 / -1; /* Make forecast full width */
   }
 }
 
@@ -267,8 +291,8 @@
   }
 
   .bento-alerts {
-    grid-column: 1 / 5; /* Left side - 4 columns */
-    grid-row: 2 / 3;
+    grid-column: 1 / -1; /* Full width */
+    grid-row: auto; /* Stack under forecast */
   }
 
   .bento-map {
@@ -277,7 +301,7 @@
   }
 
   .bento-forecast {
-    grid-column: 5 / -1; /* Right side - 8 columns for wide forecast */
+    grid-column: 1 / -1; /* Full width */
     grid-row: 2 / 3;
   }
 }
@@ -290,8 +314,8 @@
   }
 
   .bento-alerts {
-    grid-column: 1 / 4; /* Left side - 3 columns */
-    grid-row: 2 / 3;
+    grid-column: 1 / -1; /* Full width */
+    grid-row: auto; /* Stack under forecast */
   }
 
   .bento-map {
@@ -300,7 +324,7 @@
   }
 
   .bento-forecast {
-    grid-column: 4 / -1; /* Right side - 9 columns for extra wide forecast */
+    grid-column: 1 / -1; /* Full width */
     grid-row: 2 / 3;
   }
 }
