@@ -204,15 +204,720 @@
   grid-template-columns: 1fr;
 }
 
+/* Bento Layout - keeps white component styling but creates interesting grid */
+.bento-layout {
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: auto;
+  gap: 1.5rem;
+}
+
+/* Mobile Layout (stacked) */
+.bento-current-weather {
+  grid-column: 1 / -1;
+}
+
+.bento-map {
+  grid-column: 1 / -1;
+}
+
+.bento-forecast {
+  grid-column: 1 / -1;
+}
+
+.bento-alerts {
+  grid-column: 1 / -1;
+}
+
+/* Tablet Layout */
 @media (min-width: 768px) {
   .weather-content {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bento-layout {
+    grid-template-columns: repeat(12, 1fr);
+  }
+
+  .bento-current-weather {
+    grid-column: 1 / 6; /* Left side - 5 columns */
+  }
+
+  .bento-alerts {
+    grid-column: 1 / 6; /* Left side - 5 columns */
+  }
+
+  .bento-map {
+    grid-column: 6 / -1; /* Right side - 7 columns for the wide map */
+  }
+
+  .bento-forecast {
+    grid-column: 6 / -1; /* Right side - 7 columns for the wide forecast */
+  }
+}
+
+/* Desktop Layout */
+@media (min-width: 1024px) {
+  .bento-layout {
+    grid-template-rows: repeat(2, auto);
+  }
+
+  .bento-current-weather {
+    grid-column: 1 / 5; /* Left side - 4 columns */
+    grid-row: 1 / 2;
+  }
+
+  .bento-alerts {
+    grid-column: 1 / 5; /* Left side - 4 columns */
+    grid-row: 2 / 3;
+  }
+
+  .bento-map {
+    grid-column: 5 / -1; /* Right side - 8 columns for wide map */
+    grid-row: 1 / 2;
+  }
+
+  .bento-forecast {
+    grid-column: 5 / -1; /* Right side - 8 columns for wide forecast */
+    grid-row: 2 / 3;
+  }
+}
+
+/* Large Desktop Layout */
+@media (min-width: 1280px) {
+  .bento-current-weather {
+    grid-column: 1 / 4; /* Left side - 3 columns */
+    grid-row: 1 / 2;
+  }
+
+  .bento-alerts {
+    grid-column: 1 / 4; /* Left side - 3 columns */
+    grid-row: 2 / 3;
+  }
+
+  .bento-map {
+    grid-column: 4 / -1; /* Right side - 9 columns for extra wide map */
+    grid-row: 1 / 2;
+  }
+
+  .bento-forecast {
+    grid-column: 4 / -1; /* Right side - 9 columns for extra wide forecast */
+    grid-row: 2 / 3;
   }
 }
 
 .weather-component {
   border-radius: 8px;
   overflow: hidden;
+}
+
+/* Weather Map Styles */
+.weather-map-container {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.weather-map-container h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #1a73e8;
+  font-size: 1.25rem;
+}
+
+.map-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.map-type-selector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.map-type-selector button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: #333;
+}
+
+.map-type-selector button:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+}
+
+.map-type-selector button.active {
+  background-color: #1a73e8;
+  color: white;
+  border-color: #1a73e8;
+  box-shadow: 0 2px 4px rgba(26, 115, 232, 0.3);
+}
+
+.zoom-controls {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.zoom-controls button {
+  width: 35px;
+  height: 35px;
+  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  color: #333;
+}
+
+.zoom-controls button:hover:not(:disabled) {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+}
+
+.zoom-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.zoom-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 35px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: #666;
+}
+
+.map-container {
+  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: crosshair;
+  background-color: #f0f8ff;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1a73e8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.map-container {
+  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: crosshair;
+  background-color: #f0f8ff;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+}
+
+.map-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.map-container:hover .map-overlay {
+  opacity: 1;
+}
+
+.map-instructions {
+  color: white;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  text-align: center;
+  margin: 0;
+}
+
+.map-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  font-size: 0.875rem;
+  color: #666;
+}
+
+.map-footer-main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.map-info-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.map-info-secondary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: right;
+}
+
+.map-footer p {
+  margin: 0;
+}
+
+.map-footer strong {
+  color: #333;
+}
+
+.map-description {
+  font-style: italic;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+.map-source {
+  font-size: 0.75rem;
+  color: #999;
+  font-style: italic;
+}
+
+.map-coordinates {
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+/* Location marker on the map */
+.location-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  z-index: 5;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  pointer-events: none; /* Don't interfere with map clicks */
+}
+
+.location-marker:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* Weather legend */
+.weather-legend {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.weather-legend h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.legend-item {
+  font-size: 0.75rem;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Weather info overlay */
+.weather-info-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.current-weather-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.current-weather-mini .temp {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1a73e8;
+}
+
+.current-weather-mini .condition {
+  font-size: 0.8rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.current-weather-mini .wind {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+/* Enhanced zoom controls */
+.zoom-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f9f9f9;
+}
+
+.zoom-level {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 35px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: #666;
+  padding: 0 0.5rem;
+}
+
+/* Loading spinner improvements */
+.loading-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  padding: 1rem;
+}
+
+/* Map error state */
+.map-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 15;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.map-error p {
+  margin: 0 0 1rem 0;
+  color: #d32f2f;
+  font-weight: 500;
+}
+
+.map-error button {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.map-error button:hover {
+  background-color: #1557b0;
+}
+
+/* Map image transitions */
+.map-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+  transition: opacity 0.3s ease;
+}
+
+/* Map tiles container */
+.map-tiles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Base map tiles */
+.base-map-tile {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 256px;
+  height: 256px;
+  transform-origin: center;
+  border-radius: 0;
+  z-index: 1;
+  margin-left: -128px;
+  margin-top: -128px;
+}
+
+/* Weather overlay tiles */
+.weather-overlay-tile {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 256px;
+  height: 256px;
+  transform-origin: center;
+  border-radius: 0;
+  z-index: 2;
+  transition: opacity 0.3s ease;
+  mix-blend-mode: multiply;
+  margin-left: -128px;
+  margin-top: -128px;
+}
+
+/* Legacy single tile styles - keep for backwards compatibility */
+/* Base map layer */
+.base-map-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 256px;
+  height: 256px;
+  transform-origin: center;
+  border-radius: 6px;
+  z-index: 1;
+  margin-left: -128px;
+  margin-top: -128px;
+}
+
+/* Weather overlay layer */
+.weather-overlay-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 256px;
+  height: 256px;
+  transform-origin: center;
+  border-radius: 6px;
+  z-index: 2;
+  transition: opacity 0.3s ease;
+  mix-blend-mode: multiply;
+  margin-left: -128px;
+  margin-top: -128px;
+}
+
+/* Enhanced map container */
+.map-container {
+  position: relative;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: crosshair;
+  background-color: #f0f8ff;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.map-container:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .map-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .map-type-selector {
+    justify-content: center;
+  }
+
+  .zoom-controls {
+    justify-content: center;
+  }
+
+  .map-container {
+    min-height: 300px;
+  }
+
+  .location-marker {
+    font-size: 1.25rem;
+  }
+
+  .weather-legend {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    top: auto;
+    max-width: 140px;
+  }
+
+  .weather-info-overlay {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    top: auto;
+    max-width: 160px;
+  }
+
+  .current-weather-mini .temp {
+    font-size: 1.1rem;
+  }
+
+  .map-type-selector button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .map-footer-main {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .map-info-secondary {
+    text-align: center;
+  }
+}
+
+.map-coordinates {
+  font-family: "Courier New", monospace;
+  font-size: 0.8rem;
+}
+
+.map-hint {
+  font-style: italic;
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.map-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background-color: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  color: #6c757d;
+  text-align: center;
+  padding: 2rem;
+}
+
+.map-error p {
+  margin: 0.5rem 0;
+}
+
+.map-error-details {
+  font-size: 0.875rem;
+  color: #868e96;
+}
+
+.map-error-info {
+  font-size: 0.8rem;
+  color: #adb5bd;
+  font-family: "Courier New", monospace;
+}
+
+.retry-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.retry-button:hover {
+  background-color: #1669d6;
 }
 
 .app-footer {

@@ -33,7 +33,34 @@ export const getCurrentWeather = async (
     );
     if (!response.ok) throw new Error("Weather data not found");
     const data = await response.json();
+
+    // Transform basic weather data first
     const weatherData = transformWeatherData(data);
+
+    // Fetch map data using the existing function
+    const lat = weatherData.location.lat;
+    const lon = weatherData.location.lon;
+    const defaultZoom = config.weather.map.zoom;
+
+    // Generate map URLs for different types using existing function
+    const mapData = {
+      urls: {
+        precipitation: getWeatherMapUrl(
+          lat,
+          lon,
+          defaultZoom,
+          "precipitation_new"
+        ),
+        temp: getWeatherMapUrl(lat, lon, defaultZoom, "temp_new"),
+        wind: getWeatherMapUrl(lat, lon, defaultZoom, "wind_new"),
+        pressure: getWeatherMapUrl(lat, lon, defaultZoom, "pressure_new"),
+        clouds: getWeatherMapUrl(lat, lon, defaultZoom, "clouds_new"),
+      },
+      zoom: defaultZoom,
+    };
+
+    // Add map data to the weather data
+    weatherData.map = mapData;
 
     // Cache the transformed data
     cacheWeatherData(cacheKey, weatherData);
@@ -62,12 +89,35 @@ export const getWeatherForecast = async (
   if (cachedData) return cachedData;
 
   try {
+    // Fetch weather data
     const response = await fetch(
       `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=${days}`
     );
     if (!response.ok) throw new Error("Weather forecast not found");
     const data = await response.json();
+
+    // Transform basic weather data first
     const forecastData = transformWeatherData(data);
+
+    // Fetch map data in parallel using the existing function
+    const lat = forecastData.location.lat;
+    const lon = forecastData.location.lon;
+    const defaultZoom = config.weather.map.zoom;
+
+    // Generate map URLs for different types using existing function
+    const mapData = {
+      urls: {
+        precipitation: getWeatherMapUrl(lat, lon, defaultZoom, "precipitation"),
+        temp: getWeatherMapUrl(lat, lon, defaultZoom, "temp"),
+        wind: getWeatherMapUrl(lat, lon, defaultZoom, "wind"),
+        pressure: getWeatherMapUrl(lat, lon, defaultZoom, "pressure"),
+        clouds: getWeatherMapUrl(lat, lon, defaultZoom, "clouds"),
+      },
+      zoom: defaultZoom,
+    };
+
+    // Add map data to the forecast
+    forecastData.map = mapData;
 
     // Cache the transformed data
     cacheWeatherData(cacheKey, forecastData);
@@ -196,28 +246,40 @@ export const transformWeatherData = (data: WeatherApiResponse): WeatherData => {
   };
 };
 
-/**
- * Get map URL for a location
- * @param lat - Latitude
- * @param lon - Longitude
- * @param zoom - Zoom level (1-18, default from env)
- * @param type - Map type (default from env)
- * @returns Map URL string
- */
 export const getWeatherMapUrl = (
   lat: number,
   lon: number,
   zoom: number = config.weather.map.zoom,
   type: string = config.weather.map.type
 ): string => {
-  // TODO: Implement weather map URL generation
-  // This will depend on the specific mapping service you choose
+  // Map logical types to OpenWeather Weather Maps 1.0 layer names
+  const layerMapping: Record<string, string> = {
+    precipitation: "precipitation_new",
+    temp: "temp_new",
+    wind: "wind_new",
+    pressure: "pressure_new",
+    clouds: "clouds_new",
+  };
 
-  // Example placeholder implementation using OpenWeatherMap (you'll need a separate API key):
-  // return `https://tile.openweathermap.org/map/${type}/${zoom}/${lat}/${lon}.png?appid=${API_KEY}`;
+  const layer = layerMapping[type] || layerMapping.precipitation;
 
-  // For now, return a placeholder:
-  return `https://placekitten.com/500/300?lat=${lat}&lon=${lon}&zoom=${zoom}&type=${type}`;
+  // Clamp latitude to Web Mercator valid range
+  if (Math.abs(lat) > 85.0511) {
+    lat = Math.sign(lat) * 85.0511;
+  }
+
+  // Convert lon/lat to XYZ tile coordinates (Spherical Mercator / Slippy tiles)
+  const n = Math.pow(2, zoom);
+  let x = Math.floor(((lon + 180) / 360) * n);
+  x = ((x % n) + n) % n; // wrap X around the antimeridian
+
+  const latRad = (lat * Math.PI) / 180;
+  let y = Math.floor(
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n
+  );
+  y = Math.max(0, Math.min(n - 1, y)); // clamp Y
+
+  return `https://tile.openweathermap.org/map/${layer}/${zoom}/${x}/${y}.png?appid=${config.weather.map.apiKey}`;
 };
 
 /**

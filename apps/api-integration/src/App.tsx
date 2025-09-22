@@ -9,6 +9,7 @@ import {
 import CurrentWeather from "./components/CurrentWeather";
 import SearchBar from "./components/SearchBar";
 import Forecast from "./components/Forecast";
+import WeatherMap from "./components/WeatherMap";
 
 function App() {
   // Weather data state
@@ -45,6 +46,25 @@ function App() {
     // Save to localStorage and update local state
     const updatedHistory = saveToSearchHistory(query);
     setSearchHistory(updatedHistory);
+  };
+
+  const handleLocationSelect = async (lat: number, lon: number) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const locationQuery = `${lat},${lon}`;
+      const data = await getWeatherForecast(locationQuery);
+      setWeatherData(data);
+      // Add the location name to search history
+      addToSearchHistory(data.location.name);
+    } catch (err) {
+      setError(
+        "Failed to fetch weather data for selected location. Please try again."
+      );
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -160,23 +180,31 @@ function App() {
             )}
 
             {weatherData && (
-              <div className="weather-content">
-                {/* Current Weather */}
-                <CurrentWeather weatherData={weatherData} />
-
-                {/* Forecast Placeholder */}
-                <Forecast weatherData={weatherData} />
-
-                {/* Weather Map Placeholder */}
-                <div className="weather-map">
-                  <h3>Weather Map Placeholder</h3>
-                  <p>Implement the weather map here</p>
+              <div className="weather-content bento-layout">
+                {/* Current Weather - Narrow column */}
+                <div className="bento-current-weather">
+                  <CurrentWeather weatherData={weatherData} />
                 </div>
 
-                {/* Alerts Placeholder */}
-                <div className="weather-alerts">
-                  <h3>Weather Alerts Placeholder</h3>
-                  <p>Implement weather alerts here</p>
+                {/* Weather Map - Wide area */}
+                <div className="bento-map">
+                  <WeatherMap
+                    weatherData={weatherData}
+                    onLocationSelect={handleLocationSelect}
+                  />
+                </div>
+
+                {/* Forecast - Full width bottom */}
+                <div className="bento-forecast">
+                  <Forecast weatherData={weatherData} />
+                </div>
+
+                {/* Alerts - Sidebar */}
+                <div className="bento-alerts">
+                  <div className="weather-alerts">
+                    <h3>Weather Alerts Placeholder</h3>
+                    <p>Implement weather alerts here</p>
+                  </div>
                 </div>
               </div>
             )}

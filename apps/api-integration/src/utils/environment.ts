@@ -8,6 +8,7 @@ export interface WeatherConfig {
   baseUrl: string;
   cacheDuration: number;
   map: {
+    apiKey: string;
     zoom: number;
     type: string;
   };
@@ -48,7 +49,7 @@ export interface CacheItem<T = unknown> {
  * @throws Error if required environment variables are missing
  */
 export const validateEnvironment = (): void => {
-  const requiredVars = ["VITE_WEATHER_API_KEY"];
+  const requiredVars = ["VITE_WEATHER_API_KEY", "VITE_WEATHER_MAP_API_KEY"];
 
   const missingVars = requiredVars.filter((varName) => {
     const value = import.meta.env[varName];
@@ -56,7 +57,8 @@ export const validateEnvironment = (): void => {
       !value ||
       value === "YOUR_API_KEY" ||
       value === "your_weather_api_key_here" ||
-      value === "your_actual_api_key_here"
+      value === "your_actual_api_key_here" ||
+      value === "your_weather_map_api_key_here"
     );
   });
 
@@ -67,6 +69,7 @@ Missing or invalid environment variables: ${missingVars.join(", ")}
 To fix this:
 1. Copy .env.example to .env in the project root directory
 2. Get a free API key from https://www.weatherapi.com/
+3. Get a free API key from https://openweathermap.org/api for weather maps
 3. Replace VITE_WEATHER_API_KEY in your .env file with your actual API key
 
 Example:
@@ -94,7 +97,8 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
         "https://api.weatherapi.com/v1",
       cacheDuration: Number(import.meta.env.VITE_WEATHER_CACHE_DURATION) || 30,
       map: {
-        zoom: Number(import.meta.env.VITE_WEATHER_MAP_ZOOM) || 10,
+        apiKey: import.meta.env.VITE_WEATHER_MAP_API_KEY as string,
+        zoom: Number(import.meta.env.VITE_WEATHER_MAP_ZOOM) || 12,
         type:
           (import.meta.env.VITE_WEATHER_MAP_TYPE as WeatherMapType) ||
           "precipitation",

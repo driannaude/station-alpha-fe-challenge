@@ -45,6 +45,16 @@ export interface WeatherData {
       expires: string;
     }>;
   };
+  map?: {
+    urls: {
+      precipitation: string;
+      temp: string;
+      wind: string;
+      pressure: string;
+      clouds: string;
+    };
+    zoom: number;
+  };
 }
 
 export interface SearchHistoryItem {
