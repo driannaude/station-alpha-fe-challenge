@@ -29,13 +29,12 @@ const App = () => {
   };
 
   const toggleTodo = (id: string) => {
-    const updatedTodos = todos.map((todo) => {
-      if (todo.id == id) {
-        todo.completed = !todo.completed;
-        return todo;
-      }
-      return todo;
-    });
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id
+        ? // Don't mutate the original todo, create a new object instead
+          { ...todo, completed: !todo.completed }
+        : todo
+    );
     setTodos(updatedTodos);
   };
 
