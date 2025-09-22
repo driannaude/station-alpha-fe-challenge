@@ -1,4 +1,4 @@
-import { WeatherData } from '../App';
+import { WeatherData } from "../types/app.types";
 
 interface ForecastProps {
   weatherData: WeatherData;
@@ -18,21 +18,21 @@ const Forecast = ({ weatherData }: ForecastProps) => {
   // Format date to show day of week
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { weekday: 'short' });
+    return date.toLocaleDateString("en-US", { weekday: "short" });
   };
 
   return (
     <div className="forecast-container">
       <h3>5-Day Forecast</h3>
-      
+
       <div className="forecast-cards">
         {weatherData.forecast.forecastday.map((day, index) => (
           <div key={index} className="forecast-day">
             <h4>{formatDate(day.date)}</h4>
-            <img 
-              src={day.day.condition.icon} 
-              alt={day.day.condition.text} 
-              className="forecast-icon" 
+            <img
+              src={day.day.condition.icon}
+              alt={day.day.condition.text}
+              className="forecast-icon"
             />
             <div className="forecast-temps">
               <span className="max-temp">{Math.round(day.day.maxtemp_c)}°</span>
@@ -40,7 +40,7 @@ const Forecast = ({ weatherData }: ForecastProps) => {
             </div>
             <p className="forecast-condition">{day.day.condition.text}</p>
             <p className="rain-chance">
-              <span className="rain-icon">💧</span> 
+              <span className="rain-icon">💧</span>
               {day.day.daily_chance_of_rain}%
             </p>
           </div>
@@ -50,4 +50,4 @@ const Forecast = ({ weatherData }: ForecastProps) => {
   );
 };
 
-export default Forecast; 
+export default Forecast;

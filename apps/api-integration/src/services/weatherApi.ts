@@ -13,9 +13,9 @@ import { createCacheKey } from "../utils";
 // Environment variables for API configuration
 const config = getEnvironmentConfig();
 /**
- * Get current weather data for a location
+ * Get current weather data for a location with 5-day forecast
  * @param location - City name, zip code, or coordinates
- * @returns Promise with weather data
+ * @returns Promise with weather data including current conditions and forecast
  */
 export const getCurrentWeather = async (
   location: string
@@ -24,15 +24,12 @@ export const getCurrentWeather = async (
 
   // Try to get cached data first
   const cachedData = getCachedWeatherData<WeatherData>(cacheKey);
-  if (cachedData) {
-    console.log("Using cached weather data for:", location);
-    return cachedData;
-  }
+  if (cachedData) return cachedData;
 
   try {
-    console.log("Fetching fresh weather data for:", location);
+    // Use forecast endpoint to get both current weather and forecast in one call
     const response = await fetch(
-      `${config.weather.baseUrl}/current.json?key=${config.weather.apiKey}&q=${location}`
+      `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=5`
     );
     if (!response.ok) throw new Error("Weather data not found");
     const data = await response.json();
@@ -58,17 +55,24 @@ export const getWeatherForecast = async (
   location: string,
   days: number = 5
 ): Promise<WeatherData> => {
-  try {
-    console.log(location);
-    console.log(days);
-    // TODO: Implement API call to get weather forecast
-    // Example:
-    // const response = await fetch(`${BASE_URL}/forecast.json?key=${API_KEY}&q=${location}&days=${days}`);
-    // if (!response.ok) throw new Error('Weather forecast not found');
-    // const data = await response.json();
-    // return transformWeatherData(data);
+  const cacheKey = createCacheKey("weather-forecast", `${location}-${days}`);
 
-    throw new Error("getWeatherForecast not implemented");
+  // Try to get cached data first
+  const cachedData = getCachedWeatherData<WeatherData>(cacheKey);
+  if (cachedData) return cachedData;
+
+  try {
+    const response = await fetch(
+      `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=${days}`
+    );
+    if (!response.ok) throw new Error("Weather forecast not found");
+    const data = await response.json();
+    const forecastData = transformWeatherData(data);
+
+    // Cache the transformed data
+    cacheWeatherData(cacheKey, forecastData);
+
+    return forecastData;
   } catch (error) {
     console.error("Error fetching weather forecast:", error);
     throw error;
@@ -112,10 +116,7 @@ export const searchLocations = async (
   // Try to get cached data first
   const cachedData =
     getCachedWeatherData<WeatherApiLocationSearchResponse>(cacheKey);
-  if (cachedData) {
-    console.log("Using cached location search for:", query);
-    return cachedData;
-  }
+  if (cachedData) return cachedData;
 
   try {
     console.log("Fetching fresh location search for:", query);
@@ -141,11 +142,6 @@ export const searchLocations = async (
  * @returns Transformed WeatherData object
  */
 export const transformWeatherData = (data: WeatherApiResponse): WeatherData => {
-  console.log("Transforming data:", data);
-  // TODO: Implement data transformation from API response to WeatherData format
-  // This will depend on the specific API you choose
-
-  // Example placeholder implementation:
   return {
     location: {
       name: data.location?.name || "Unknown",
@@ -297,6 +293,7 @@ export const clearAllCache = (): void => {
   keys.forEach((key) => {
     if (
       key.startsWith("weather-current-") ||
+      key.startsWith("weather-forecast-") ||
       key.startsWith("location-search-")
     ) {
       localStorage.removeItem(key);

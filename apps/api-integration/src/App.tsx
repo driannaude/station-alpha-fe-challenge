@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import { SearchHistoryItem, WeatherData } from "./types/app.types";
 import {
-  getCurrentWeather,
+  getWeatherForecast,
   getSearchHistory,
   addToSearchHistory as saveToSearchHistory,
 } from "./services/weatherApi";
 import CurrentWeather from "./components/CurrentWeather";
 import SearchBar from "./components/SearchBar";
+import Forecast from "./components/Forecast";
 
 function App() {
   // Weather data state
@@ -30,7 +31,7 @@ function App() {
       if (!location.trim()) return;
       setIsLoading(true);
       setError(null);
-      const data = await getCurrentWeather(location);
+      const data = await getWeatherForecast(location);
       setWeatherData(data);
     } catch (err) {
       setError("Failed to fetch weather data. Please try again.");
@@ -164,10 +165,7 @@ function App() {
                 <CurrentWeather weatherData={weatherData} />
 
                 {/* Forecast Placeholder */}
-                <div className="forecast">
-                  <h3>Forecast Placeholder</h3>
-                  <p>Implement the 5-day forecast here</p>
-                </div>
+                <Forecast weatherData={weatherData} />
 
                 {/* Weather Map Placeholder */}
                 <div className="weather-map">
