@@ -46,6 +46,29 @@ This repository is designed as a take-home assessment to evaluate frontend devel
 
 ## How to Run
 
+### Environment Setup
+
+Before running the applications, you need to set up your environment variables:
+
+1. **Copy the environment template**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Configure your API keys**: Edit the `.env` file and replace the placeholder values with your actual API keys:
+   - `VITE_WEATHER_API_KEY`: Get your free API key from [WeatherAPI.com](https://www.weatherapi.com/)
+   - Other configuration values can be left as default or customized as needed
+
+3. **Environment Variables Reference**:
+   - `VITE_WEATHER_API_KEY`: Your WeatherAPI.com API key (required for API integration challenge)
+   - `VITE_WEATHER_API_BASE_URL`: Base URL for the weather API (default: https://api.weatherapi.com/v1)
+   - `VITE_WEATHER_CACHE_DURATION`: Cache duration in minutes (default: 30)
+   - `VITE_WEATHER_MAP_ZOOM`: Default map zoom level (default: 10)
+   - `VITE_WEATHER_MAP_TYPE`: Default map type (default: precipitation)
+   - Feature flags for enabling/disabling specific features
+
+### Running the Applications
+
 ```bash
 # Install dependencies
 npm install
