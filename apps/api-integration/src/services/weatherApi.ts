@@ -1,4 +1,3 @@
-import { WeatherData } from "../App";
 import {
   getEnvironmentConfig,
   cacheData,
@@ -7,7 +6,8 @@ import {
 import {
   WeatherApiResponse,
   WeatherApiLocationSearchResponse,
-} from "../types/weatherApi.types";
+} from "../types/api.types";
+import { WeatherData } from "../types/app.types";
 
 // Environment variables for API configuration
 const config = getEnvironmentConfig();
@@ -28,8 +28,12 @@ export const getCurrentWeather = async (
     // if (!response.ok) throw new Error('Weather data not found');
     // const data = await response.json();
     // return transformWeatherData(data);
-
-    throw new Error("getCurrentWeather not implemented");
+    const response = await fetch(
+      `${config.weather.baseUrl}/current.json?key=${config.weather.apiKey}&q=${location}`
+    );
+    if (!response.ok) throw new Error("Weather data not found");
+    const data = await response.json();
+    return transformWeatherData(data);
   } catch (error) {
     console.error("Error fetching current weather:", error);
     throw error;

@@ -1,4 +1,4 @@
-import { WeatherData } from '../App';
+import { WeatherData } from "../types/app.types";
 
 interface CurrentWeatherProps {
   weatherData: WeatherData;
@@ -15,10 +15,10 @@ const CurrentWeather = ({ weatherData }: CurrentWeatherProps) => {
       </div>
 
       <div className="weather-main">
-        <img 
-          src={current.condition.icon} 
-          alt={current.condition.text} 
-          className="weather-icon" 
+        <img
+          src={current.condition.icon}
+          alt={current.condition.text}
+          className="weather-icon"
         />
         <div className="temperature">
           <span className="temp-value">{Math.round(current.temp_c)}</span>
@@ -30,11 +30,15 @@ const CurrentWeather = ({ weatherData }: CurrentWeatherProps) => {
       <div className="weather-details">
         <div className="detail-item">
           <span className="detail-label">Feels Like</span>
-          <span className="detail-value">{Math.round(current.feelslike_c)}°C</span>
+          <span className="detail-value">
+            {Math.round(current.feelslike_c)}°C
+          </span>
         </div>
         <div className="detail-item">
           <span className="detail-label">Wind</span>
-          <span className="detail-value">{current.wind_kph} km/h ({current.wind_dir})</span>
+          <span className="detail-value">
+            {current.wind_kph} km/h ({current.wind_dir})
+          </span>
         </div>
         <div className="detail-item">
           <span className="detail-label">Humidity</span>
@@ -53,4 +57,4 @@ const CurrentWeather = ({ weatherData }: CurrentWeatherProps) => {
   );
 };
 
-export default CurrentWeather; 
+export default CurrentWeather;
