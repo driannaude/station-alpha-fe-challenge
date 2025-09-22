@@ -2,7 +2,7 @@
 
 Please answer the following questions about the bugs you identified and fixed:
 
-1. **Bug Overview**: List the bugs you found and fixed. For each bug, briefly describe:
+## 1. **Bug Overview**: List the bugs you found and fixed. For each bug, briefly describe:
    - What was the issue?
    - How did you identify it?
    - How did you fix it?
@@ -106,7 +106,7 @@ These may be specific to my setup on a newer M4 MacBook, or some artifacts in th
    `Triage`: Some apps had dependency version mismatches that prevented building on ARM64 architecture.
    `Solution`: Updated dependency versions to ensure cross-platform compatibility and resolve npm audit vulnerabilities.
 
-1. **Technical Approach**: What debugging tools and techniques did you use to identify and fix the bugs?
+## 2. **Technical Approach**: What debugging tools and techniques did you use to identify and fix the bugs?
 
 - **LSP (Language Server Protocol)**: TypeScript language server for catching type errors and providing intellisense
 - **Console**: Browser DevTools for runtime error detection and debugging
@@ -115,7 +115,7 @@ These may be specific to my setup on a newer M4 MacBook, or some artifacts in th
 - **Static analysis**: Reading through code systematically to identify patterns and antipatterns
 - **Version compatibility checking**: Investigating dependency version mismatches causing build failures
 
-2. **Code Improvements**: Beyond fixing bugs, did you make any improvements to the code organization or structure? If so, what and why?
+## 3. **Code Improvements**: Beyond fixing bugs, did you make any improvements to the code organization or structure? If so, what and why?
 
 - See Environment Bugs above, but had to make a few changes repo-wide to get applications to build on my M4 MacBook.
 - Packages version bumped to fix security issues identified by `npm audit`
@@ -126,7 +126,7 @@ These may be specific to my setup on a newer M4 MacBook, or some artifacts in th
 - Enhanced TodoForm with user feedback: added error state management, visual error styling, and real-time validation clearing when user starts typing.
 - Improved CSS organization: added `.todo-form-container` wrapper, error styling with transitions, and better focus states for accessibility.
 
-3. **Future Prevention**: How would you prevent similar bugs in future development? Consider both coding practices and testing strategies.
+## 4. **Future Prevention**: How would you prevent similar bugs in future development? Consider both coding practices and testing strategies.
 
 - Add a linter like eslint, and a defined config to help establish some shared code standards.
 - Add some git hooks/scripts to lint/test/build pre-push (could do pre-commit but that makes WIP commits hard).
@@ -137,5 +137,8 @@ These may be specific to my setup on a newer M4 MacBook, or some artifacts in th
 - Implement accessibility testing and ARIA compliance checks.
 - Add input validation patterns and constraints as standard practice for all forms.
 
-4. **Learning**: What was the most challenging or interesting aspect of this bug-hunting exercise?
-   Hadn't worked with turborepo before so was treading lightly and ensuring I wasn't at fault during the issues with the environment setup, and rechecking every app within the workspace to ensure upgrades wouldn't break it.
+## 5. **Learning**: What was the most challenging or interesting aspect of this bug-hunting exercise?
+
+The trickiest part was working with Turborepo for the first time while trying not to break everything else in the workspace. Had to be pretty careful about dependency updates and build config changes since they could cascade across all the apps.
+
+What I found interesting was how the bugs existed at different levels - some were obvious TypeScript errors, others were deeper issues like state mutation antipatterns or build toolchain version mismatches. Dev environments can sometimes hide fundamental problems until you dig into each layer systematically like this!
