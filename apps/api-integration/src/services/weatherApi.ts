@@ -3,75 +3,12 @@ import {
   cacheData,
   getCachedData,
 } from "../utils/environment";
-import {
-  WeatherApiResponse,
-  WeatherApiLocationSearchResponse,
-} from "../types/api.types";
+import { WeatherApiResponse, WeatherApiLocationSearchResponse } from "../types/api.types";
 import { WeatherData, SearchHistoryItem } from "../types/app.types";
 import { createCacheKey } from "../utils";
 
 // Environment variables for API configuration
 const config = getEnvironmentConfig();
-/**
- * Get current weather data for a location with 5-day forecast
- * @param location - City name, zip code, or coordinates
- * @returns Promise with weather data including current conditions and forecast
- */
-export const getCurrentWeather = async (
-  location: string
-): Promise<WeatherData> => {
-  // Include alerts in the request; bump cache key to fetch fresh
-  const cacheKey = createCacheKey("weather-current-alerts", location);
-
-  // Try to get cached data first
-  const cachedData = getCachedWeatherData<WeatherData>(cacheKey);
-  if (cachedData) return cachedData;
-
-  try {
-    // Use forecast endpoint to get both current weather and forecast in one call
-    const response = await fetch(
-      `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=5&alerts=yes`
-    );
-    if (!response.ok) throw new Error("Weather data not found");
-    const data = await response.json();
-
-    // Transform basic weather data first
-    const weatherData = transformWeatherData(data);
-
-    // Fetch map data using the existing function
-    const lat = weatherData.location.lat;
-    const lon = weatherData.location.lon;
-    const defaultZoom = config.weather.map.zoom;
-
-    // Generate map URLs for different types using existing function
-    const mapData = {
-      urls: {
-        precipitation: getWeatherMapUrl(
-          lat,
-          lon,
-          defaultZoom,
-          "precipitation_new"
-        ),
-        temp: getWeatherMapUrl(lat, lon, defaultZoom, "temp_new"),
-        wind: getWeatherMapUrl(lat, lon, defaultZoom, "wind_new"),
-        pressure: getWeatherMapUrl(lat, lon, defaultZoom, "pressure_new"),
-        clouds: getWeatherMapUrl(lat, lon, defaultZoom, "clouds_new"),
-      },
-      zoom: defaultZoom,
-    };
-
-    // Add map data to the weather data
-    weatherData.map = mapData;
-
-    // Cache the transformed data
-    cacheWeatherData(cacheKey, weatherData);
-
-    return weatherData;
-  } catch (error) {
-    console.error("Error fetching current weather:", error);
-    throw error;
-  }
-};
 
 /**
  * Get forecast weather data for a location
@@ -101,62 +38,12 @@ export const getWeatherForecast = async (
     if (!response.ok) throw new Error("Weather forecast not found");
     const data = await response.json();
 
-    // Transform basic weather data first
+    // Transform and cache
     const forecastData = transformWeatherData(data);
-
-    // Fetch map data in parallel using the existing function
-    const lat = forecastData.location.lat;
-    const lon = forecastData.location.lon;
-    const defaultZoom = config.weather.map.zoom;
-
-    // Generate map URLs for different types using existing function
-    const mapData = {
-      urls: {
-        precipitation: getWeatherMapUrl(lat, lon, defaultZoom, "precipitation"),
-        temp: getWeatherMapUrl(lat, lon, defaultZoom, "temp"),
-        wind: getWeatherMapUrl(lat, lon, defaultZoom, "wind"),
-        pressure: getWeatherMapUrl(lat, lon, defaultZoom, "pressure"),
-        clouds: getWeatherMapUrl(lat, lon, defaultZoom, "clouds"),
-      },
-      zoom: defaultZoom,
-    };
-
-    // Add map data to the forecast
-    forecastData.map = mapData;
-
-    // Cache the transformed data
     cacheWeatherData(cacheKey, forecastData);
-
     return forecastData;
   } catch (error) {
     console.error("Error fetching weather forecast:", error);
-    throw error;
-  }
-};
-
-/**
- * Get weather alerts for a location
- * @param location - City name, zip code, or coordinates
- * @returns Promise with weather alerts data
- */
-export const getWeatherAlerts = async (
-  location: string
-): Promise<WeatherData> => {
-  try {
-    const cacheKey = createCacheKey("weather-alerts", location);
-    const cached = getCachedWeatherData<WeatherData>(cacheKey);
-    if (cached) return cached;
-
-    const response = await fetch(
-      `${config.weather.baseUrl}/forecast.json?key=${config.weather.apiKey}&q=${location}&days=1&alerts=yes`
-    );
-    if (!response.ok) throw new Error("Weather alerts not found");
-    const data = await response.json();
-    const transformed = transformWeatherData(data);
-    cacheWeatherData(cacheKey, transformed, 15);
-    return transformed;
-  } catch (error) {
-    console.error("Error fetching weather alerts:", error);
     throw error;
   }
 };
@@ -252,42 +139,6 @@ export const transformWeatherData = (data: WeatherApiResponse): WeatherData => {
         }
       : undefined,
   };
-};
-
-export const getWeatherMapUrl = (
-  lat: number,
-  lon: number,
-  zoom: number = config.weather.map.zoom,
-  type: string = config.weather.map.type
-): string => {
-  // Map logical types to OpenWeather Weather Maps 1.0 layer names
-  const layerMapping: Record<string, string> = {
-    precipitation: "precipitation_new",
-    temp: "temp_new",
-    wind: "wind_new",
-    pressure: "pressure_new",
-    clouds: "clouds_new",
-  };
-
-  const layer = layerMapping[type] || layerMapping.precipitation;
-
-  // Clamp latitude to Web Mercator valid range
-  if (Math.abs(lat) > 85.0511) {
-    lat = Math.sign(lat) * 85.0511;
-  }
-
-  // Convert lon/lat to XYZ tile coordinates (Spherical Mercator / Slippy tiles)
-  const n = Math.pow(2, zoom);
-  let x = Math.floor(((lon + 180) / 360) * n);
-  x = ((x % n) + n) % n; // wrap X around the antimeridian
-
-  const latRad = (lat * Math.PI) / 180;
-  let y = Math.floor(
-    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n
-  );
-  y = Math.max(0, Math.min(n - 1, y)); // clamp Y
-
-  return `https://tile.openweathermap.org/map/${layer}/${zoom}/${x}/${y}.png?appid=${config.weather.map.apiKey}`;
 };
 
 /**

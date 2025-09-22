@@ -28,54 +28,7 @@ export const isSearchInputFocused = (className = "search-input"): boolean => {
 /**
  * Search query processing options
  */
-export interface SearchQueryOptions {
-  /** Minimum query length to trigger search */
-  minLength?: number;
-  /** Maximum query length allowed */
-  maxLength?: number;
-  /** Whether to trim whitespace */
-  trim?: boolean;
-  /** Whether to convert to lowercase */
-  normalize?: boolean;
-}
-
-/**
- * Processes a search query according to specified options
- * @param query - The raw search query
- * @param options - Processing options
- * @returns Processed query and validation result
- */
-export const processSearchQuery = (
-  query: string,
-  options: SearchQueryOptions = {}
-): { processedQuery: string; isValid: boolean; shouldSearch: boolean } => {
-  const {
-    minLength = 3,
-    maxLength = 100,
-    trim = true,
-    normalize = false,
-  } = options;
-
-  let processedQuery = query;
-
-  if (trim) {
-    processedQuery = processedQuery.trim();
-  }
-
-  if (normalize) {
-    processedQuery = processedQuery.toLowerCase();
-  }
-
-  const isValid =
-    processedQuery.length >= minLength && processedQuery.length <= maxLength;
-  const shouldSearch = isValid && processedQuery.length >= minLength;
-
-  return {
-    processedQuery,
-    isValid,
-    shouldSearch,
-  };
-};
+// (Deprecated) Query processing helpers were removed to reduce unused code.
 
 /**
  * Search UI state management helpers

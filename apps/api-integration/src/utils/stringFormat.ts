@@ -31,30 +31,6 @@ export const formatLocationString = (
  * @param str - The string to capitalize
  * @returns Capitalized string
  */
-export const capitalizeWords = (str: string): string => {
-  return str
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
-
-/**
- * Truncates a string to a specified length with ellipsis
- * @param str - The string to truncate
- * @param maxLength - Maximum length before truncation
- * @param ellipsis - The ellipsis string to append (default: '...')
- * @returns Truncated string
- */
-export const truncateString = (
-  str: string,
-  maxLength: number,
-  ellipsis = "..."
-): string => {
-  if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength - ellipsis.length) + ellipsis;
-};
-
 /**
  * Normalizes a string for consistent comparison/caching
  * Converts to lowercase and trims whitespace
@@ -73,27 +49,4 @@ export const normalizeString = (str: string): string => {
  */
 export const createCacheKey = (prefix: string, value: string): string => {
   return `${prefix}-${normalizeString(value)}`;
-};
-
-/**
- * Formats temperature with appropriate unit
- * @param temp - Temperature value
- * @param unit - Temperature unit ('C' or 'F')
- * @returns Formatted temperature string
- */
-export const formatTemperature = (
-  temp: number,
-  unit: "C" | "F" = "C"
-): string => {
-  return `${Math.round(temp)}°${unit}`;
-};
-
-/**
- * Formats wind speed with direction
- * @param speed - Wind speed in km/h
- * @param direction - Wind direction (e.g., 'N', 'NE', 'SW')
- * @returns Formatted wind string
- */
-export const formatWind = (speed: number, direction: string): string => {
-  return `${Math.round(speed)} km/h ${direction}`;
 };

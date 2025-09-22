@@ -116,22 +116,6 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
 };
 
 /**
- * Gets feature flags for conditional rendering
- */
-export const getFeatureFlags = (): FeatureFlags =>
-  getEnvironmentConfig().features;
-
-/**
- * Checks if we're in development mode
- */
-export const isDevelopment = () => import.meta.env.DEV;
-
-/**
- * Checks if we're in production mode
- */
-export const isProduction = () => import.meta.env.PROD;
-
-/**
  * Cache data in localStorage with proper typing
  * @param key - Cache key
  * @param data - Data to cache
