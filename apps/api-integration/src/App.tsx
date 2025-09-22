@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import { SearchHistoryItem, WeatherData } from "./types/app.types";
-import { getCurrentWeather } from "./services/weatherApi";
+import {
+  getCurrentWeather,
+  getSearchHistory,
+  addToSearchHistory as saveToSearchHistory,
+} from "./services/weatherApi";
 import CurrentWeather from "./components/CurrentWeather";
+import SearchBar from "./components/SearchBar";
 
 function App() {
   // Weather data state
@@ -11,26 +16,34 @@ function App() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   // Error state
   const [error, setError] = useState<string | null>(null);
-  // Search query state
-  const [searchQuery, setSearchQuery] = useState<string>("");
   // Search history
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
 
-  const handleSearch = async () => {
+  // Load search history from localStorage on component mount
+  useEffect(() => {
+    const loadedHistory = getSearchHistory();
+    setSearchHistory(loadedHistory);
+  }, []);
+
+  const handleSearch = async (location: string) => {
     try {
+      if (!location.trim()) return;
       setIsLoading(true);
-      const data = await getCurrentWeather(searchQuery);
+      setError(null);
+      const data = await getCurrentWeather(location);
       setWeatherData(data);
-      setSearchHistory((prev) => [
-        ...prev,
-        { query: searchQuery, timestamp: Date.now() },
-      ]);
     } catch (err) {
       setError("Failed to fetch weather data. Please try again.");
       console.error(err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const addToSearchHistory = (query: string) => {
+    // Save to localStorage and update local state
+    const updatedHistory = saveToSearchHistory(query);
+    setSearchHistory(updatedHistory);
   };
 
   return (
@@ -124,16 +137,12 @@ function App() {
         <section className="implementation-area">
           <h2>Your Implementation</h2>
 
-          {/* Search Component Placeholder */}
-          <div className="search-container">
-            <input
-              type="text"
-              placeholder="Search for a city..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button onClick={handleSearch}>Search</button>
-          </div>
+          {/* Search Component */}
+          <SearchBar
+            onSearch={handleSearch}
+            searchHistory={searchHistory}
+            addToSearchHistory={addToSearchHistory}
+          />
 
           {/* Weather Display Placeholders */}
           <div className="weather-display">

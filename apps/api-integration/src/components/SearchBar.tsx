@@ -1,6 +1,15 @@
-import { useState, useEffect, FormEvent } from 'react';
-import { SearchHistoryItem } from '../App';
-import { searchLocations } from '../services/weatherApi';
+import { useState, useEffect, FormEvent, useCallback } from "react";
+import { SearchHistoryItem } from "../types/app.types";
+import { searchLocations } from "../services/weatherApi";
+import { WeatherApiLocationSearchResult } from "../types/api.types";
+import {
+  useDebounce,
+  DEBOUNCE_DELAYS,
+  formatLocationString,
+  searchUIHelpers,
+  isValidSearchQuery,
+  isSearchInputFocused,
+} from "../utils";
 
 interface SearchBarProps {
   onSearch: (location: string) => void;
@@ -8,41 +17,57 @@ interface SearchBarProps {
   addToSearchHistory: (query: string) => void;
 }
 
-const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarProps) => {
-  const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+const SearchBar = ({
+  onSearch,
+  searchHistory,
+  addToSearchHistory,
+}: SearchBarProps) => {
+  const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<
+    WeatherApiLocationSearchResult[]
+  >([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (query.length < 3) {
+  // Create the fetch function that will be debounced
+  const fetchSuggestions = useCallback(
+    async (searchQuery: string) => {
+      if (!isValidSearchQuery(searchQuery)) {
         setSuggestions([]);
+        // Show history when no search query, hide suggestions
+        if (isSearchInputFocused()) {
+          setShowHistory(searchHistory.length > 0);
+          setShowSuggestions(false);
+        }
         return;
       }
 
       try {
-        // TODO: Implement fetching location suggestions
-        // const results = await searchLocations(query);
-        // setSuggestions(results);
-        
-        // Placeholder suggestions for demonstration
-        setSuggestions([
-          { id: 1, name: 'London, UK' },
-          { id: 2, name: 'New York, US' },
-          { id: 3, name: 'Tokyo, Japan' },
-          { id: 4, name: 'Sydney, Australia' },
-          { id: 5, name: 'Paris, France' }
-        ].filter(item => item.name.toLowerCase().includes(query.toLowerCase())));
+        const results = await searchLocations(searchQuery);
+        setSuggestions(results);
+        // Show suggestions when we have query results, hide history
+        if (isSearchInputFocused()) {
+          setShowSuggestions(results.length > 0);
+          setShowHistory(false);
+        }
       } catch (error) {
-        console.error('Error fetching suggestions:', error);
+        console.error("Error fetching suggestions:", error);
         setSuggestions([]);
+        setShowSuggestions(false);
       }
-    };
+    },
+    [searchHistory.length]
+  );
 
-    const debounceTimer = setTimeout(fetchSuggestions, 500);
-    return () => clearTimeout(debounceTimer);
-  }, [query]);
+  const debouncedFetchSuggestions = useDebounce(
+    fetchSuggestions,
+    DEBOUNCE_DELAYS.SEARCH
+  );
+
+  // Effect to trigger debounced search when query changes
+  useEffect(() => {
+    debouncedFetchSuggestions(query);
+  }, [query, debouncedFetchSuggestions]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -54,17 +79,22 @@ const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarPro
     }
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion);
-    onSearch(suggestion);
-    addToSearchHistory(suggestion);
+  const handleSuggestionClick = (
+    suggestion: WeatherApiLocationSearchResult
+  ) => {
+    const locationString = formatLocationString(suggestion);
+    setQuery(locationString);
+    onSearch(locationString);
+    addToSearchHistory(locationString);
     setShowSuggestions(false);
+    setShowHistory(false);
   };
 
   const handleHistoryClick = (historyItem: string) => {
     setQuery(historyItem);
     onSearch(historyItem);
     setShowHistory(false);
+    setShowSuggestions(false);
   };
 
   return (
@@ -76,9 +106,18 @@ const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarPro
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => {
-              setShowSuggestions(true);
-              setShowHistory(searchHistory.length > 0);
+              if (!isValidSearchQuery(query)) {
+                setShowHistory(searchHistory.length > 0);
+                setShowSuggestions(false);
+              } else {
+                setShowSuggestions(true);
+                setShowHistory(false);
+              }
             }}
+            onBlur={searchUIHelpers.createBlurHandler(() => {
+              setShowSuggestions(false);
+              setShowHistory(false);
+            })}
             placeholder="Search for a city or zip code..."
             className="search-input"
           />
@@ -93,10 +132,10 @@ const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarPro
             {suggestions.map((suggestion) => (
               <li
                 key={suggestion.id}
-                onClick={() => handleSuggestionClick(suggestion.name)}
+                onClick={() => handleSuggestionClick(suggestion)}
                 className="suggestion-item"
               >
-                {suggestion.name}
+                {formatLocationString(suggestion)}
               </li>
             ))}
           </ul>
@@ -124,4 +163,4 @@ const SearchBar = ({ onSearch, searchHistory, addToSearchHistory }: SearchBarPro
   );
 };
 
-export default SearchBar; 
+export default SearchBar;

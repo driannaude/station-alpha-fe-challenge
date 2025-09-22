@@ -7,7 +7,8 @@ import {
   WeatherApiResponse,
   WeatherApiLocationSearchResponse,
 } from "../types/api.types";
-import { WeatherData } from "../types/app.types";
+import { WeatherData, SearchHistoryItem } from "../types/app.types";
+import { createCacheKey } from "../utils";
 
 // Environment variables for API configuration
 const config = getEnvironmentConfig();
@@ -19,21 +20,28 @@ const config = getEnvironmentConfig();
 export const getCurrentWeather = async (
   location: string
 ): Promise<WeatherData> => {
+  const cacheKey = createCacheKey("weather-current", location);
+
+  // Try to get cached data first
+  const cachedData = getCachedWeatherData<WeatherData>(cacheKey);
+  if (cachedData) {
+    console.log("Using cached weather data for:", location);
+    return cachedData;
+  }
+
   try {
-    console.log(location);
-    console.log("API Key:", config.weather.apiKey);
-    // TODO: Implement API call to get current weather
-    // Example:
-    // const response = await fetch(`${BASE_URL}/current.json?key=${API_KEY}&q=${location}`);
-    // if (!response.ok) throw new Error('Weather data not found');
-    // const data = await response.json();
-    // return transformWeatherData(data);
+    console.log("Fetching fresh weather data for:", location);
     const response = await fetch(
       `${config.weather.baseUrl}/current.json?key=${config.weather.apiKey}&q=${location}`
     );
     if (!response.ok) throw new Error("Weather data not found");
     const data = await response.json();
-    return transformWeatherData(data);
+    const weatherData = transformWeatherData(data);
+
+    // Cache the transformed data
+    cacheWeatherData(cacheKey, weatherData);
+
+    return weatherData;
   } catch (error) {
     console.error("Error fetching current weather:", error);
     throw error;
@@ -99,15 +107,28 @@ export const getWeatherAlerts = async (
 export const searchLocations = async (
   query: string
 ): Promise<WeatherApiLocationSearchResponse> => {
-  try {
-    console.log(query);
-    // TODO: Implement API call to search locations
-    // Example:
-    // const response = await fetch(`${BASE_URL}/search.json?key=${API_KEY}&q=${query}`);
-    // if (!response.ok) throw new Error('Location search failed');
-    // return response.json();
+  const cacheKey = createCacheKey("location-search", query);
 
-    throw new Error("searchLocations not implemented");
+  // Try to get cached data first
+  const cachedData =
+    getCachedWeatherData<WeatherApiLocationSearchResponse>(cacheKey);
+  if (cachedData) {
+    console.log("Using cached location search for:", query);
+    return cachedData;
+  }
+
+  try {
+    console.log("Fetching fresh location search for:", query);
+    const response = await fetch(
+      `${config.weather.baseUrl}/search.json?key=${config.weather.apiKey}&q=${query}`
+    );
+    if (!response.ok) throw new Error("Location search failed");
+    const data = await response.json();
+
+    // Cache the search results with shorter expiration (15 minutes for searches)
+    cacheWeatherData(cacheKey, data, 15);
+
+    return data;
   } catch (error) {
     console.error("Error searching locations:", error);
     throw error;
@@ -224,4 +245,63 @@ export const cacheWeatherData = <T>(
  */
 export const getCachedWeatherData = <T>(key: string): T | null => {
   return getCachedData<T>(key);
+};
+
+/**
+ * Get search history from localStorage
+ * @returns Array of search history items
+ */
+export const getSearchHistory = (): SearchHistoryItem[] => {
+  const cached = getCachedData<SearchHistoryItem[]>("search-history");
+  return cached || [];
+};
+
+/**
+ * Save search history to localStorage
+ * @param history - Array of search history items
+ */
+export const saveSearchHistory = (history: SearchHistoryItem[]): void => {
+  // Cache search history for 30 days
+  cacheData("search-history", history, 30 * 24 * 60);
+};
+
+/**
+ * Add item to search history and save to localStorage
+ * @param query - Search query to add
+ * @returns Updated search history array
+ */
+export const addToSearchHistory = (query: string): SearchHistoryItem[] => {
+  const currentHistory = getSearchHistory();
+  const newItem: SearchHistoryItem = { query, timestamp: Date.now() };
+
+  // Remove existing entry if it exists and add new one at the beginning
+  const updatedHistory = [
+    newItem,
+    ...currentHistory.filter((item) => item.query !== query).slice(0, 4), // Keep last 5 unique searches
+  ];
+
+  saveSearchHistory(updatedHistory);
+  return updatedHistory;
+};
+
+/**
+ * Clear all cached data (weather, search history, location searches)
+ * Useful for development or user preference
+ */
+export const clearAllCache = (): void => {
+  // Clear search history
+  localStorage.removeItem("search-history");
+
+  // Clear all weather and location search cache
+  const keys = Object.keys(localStorage);
+  keys.forEach((key) => {
+    if (
+      key.startsWith("weather-current-") ||
+      key.startsWith("location-search-")
+    ) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  console.log("All weather cache and search history cleared");
 };
